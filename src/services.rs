@@ -17,7 +17,7 @@ pub struct ServicesInner {
     /// maps to id
     by_type: MultiMap<Name<'static>, usize>,
     /// maps to id
-    by_name: HashMap<Name<'static>, usize>,
+    pub by_name: HashMap<Name<'static>, usize>,
 }
 
 impl ServicesInner {
@@ -136,4 +136,14 @@ impl ServiceData {
     pub fn add_txt_rr(&self, builder: AnswerBuilder, ttl: u32) -> AnswerBuilder {
         builder.add_answer(&self.name, QueryClass::IN, ttl, &RRData::TXT(&self.txt))
     }
+
+    pub fn add_ptr_discovery_rsp(&self, builder: AnswerBuilder, discoverer: &Name, ttl: u32) -> AnswerBuilder {
+        builder.add_answer(
+            discoverer,
+            QueryClass::IN,
+            ttl,
+            &RRData::PTR(self.typ.clone()),
+        )
+    }
+
 }
