@@ -7,6 +7,7 @@ pub fn main() {
         "libmdns Web Server".to_owned(),
         80,
         &["path=/"],
+	120
     );
 
     loop {

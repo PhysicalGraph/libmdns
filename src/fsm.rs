@@ -145,35 +145,50 @@ impl<AF: AddressFamily> FSM<AF> {
             QueryType::A | QueryType::AAAA | QueryType::All
                 if question.qname == *services.get_hostname() =>
             {
-                builder = self.add_ip_rr(services.get_hostname(), builder, DEFAULT_TTL);
+	            unsafe
+                {
+                    builder = self.add_ip_rr(services.get_hostname(), builder, DEFAULT_TTL);
+                }
             }
             QueryType::PTR => {
                 if question.qname.to_string() == "_services._dns-sd._udp.local" {
-                    for (key,value) in services.by_name.iter() {
+                    for (key, _value) in services.by_name.iter() {
                     if let Some(svc) =  services.find_by_name(&key) {
+		            unsafe
+                    {
                         builder = svc.add_ptr_discovery_rsp(builder, &question.qname, DEFAULT_TTL);
-		     }
+                    }
+		    }
                   }
 
                 }
                 else {
                     for svc in services.find_by_type(&question.qname) {
+                       unsafe
+                        {
                             builder = svc.add_ptr_rr(builder, DEFAULT_TTL);
                             builder = svc.add_srv_rr(services.get_hostname(), builder, DEFAULT_TTL);
                             builder = svc.add_txt_rr(builder, DEFAULT_TTL);
                             builder = self.add_ip_rr(services.get_hostname(), builder, DEFAULT_TTL);
+                        }
                     }
                 }
             }
             QueryType::SRV => {
                 if let Some(svc) = services.find_by_name(&question.qname) {
-                    builder = svc.add_srv_rr(services.get_hostname(), builder, DEFAULT_TTL);
-                    builder = self.add_ip_rr(services.get_hostname(), builder, DEFAULT_TTL);
+                   unsafe
+                    {
+                        builder = svc.add_srv_rr(services.get_hostname(), builder, DEFAULT_TTL);
+                        builder = self.add_ip_rr(services.get_hostname(), builder, DEFAULT_TTL);
+                    }
                 }
             }
             QueryType::TXT => {
                 if let Some(svc) = services.find_by_name(&question.qname) {
-                    builder = svc.add_txt_rr(builder, DEFAULT_TTL);
+                   unsafe
+                    {
+                        builder = svc.add_txt_rr(builder, DEFAULT_TTL);
+                    }
                 }
             }
             _ => (),

@@ -19,7 +19,7 @@ use crate::address_family::{Inet, Inet6};
 use crate::fsm::{Command, FSM};
 use crate::services::{ServiceData, Services, ServicesInner};
 
-const DEFAULT_TTL: u32 = 60;
+static mut DEFAULT_TTL: u32 = 120;
 const MDNS_PORT: u16 = 5353;
 
 pub struct Responder {
@@ -122,7 +122,7 @@ impl Responder {
 }
 
 impl Responder {
-    pub fn register(&self, svc_type: String, svc_name: String, port: u16, txt: &[&str]) -> Service {
+    pub fn register(&self, svc_type: String, svc_name: String, port: u16, txt: &[&str], ttl: u32) -> Service {
         let txt = if txt.is_empty() {
             vec![0]
         } else {
@@ -144,9 +144,12 @@ impl Responder {
             txt: txt,
         };
 
-        self.commands
-            .borrow_mut()
-            .send_unsolicited(svc.clone(), DEFAULT_TTL, true);
+        unsafe {
+          DEFAULT_TTL = ttl;
+          self.commands
+              .borrow_mut()
+              .send_unsolicited(svc.clone(), DEFAULT_TTL, true);
+        }
 
         let id = self.services.write().unwrap().register(svc);
 
